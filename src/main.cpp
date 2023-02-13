@@ -1,9 +1,12 @@
-#include <utf.h>
 #include <memory>
 #include <fstream>
 #include <iostream>
 
-#include <compoundfilereader.h>
+#include <QtXml/QDomDocument>
+
+#include "utf.h"
+#include "compoundfilereader.h"
+
 
 
 CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* streamName) {
@@ -37,6 +40,7 @@ CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader
 
 
 int main() {
+  // Open file.
   std::string filename = "example-projects/6.0.6000.16386/empty-with-metadata.MSWMM";
   std::ifstream file(filename, std::ios_base::in | std::ios_base::binary);
   if (!file.good()) {
@@ -49,24 +53,63 @@ int main() {
   size_t length = file.tellg();
   file.seekg(0, file.beg);
 
+  // Read file into buffer.
   auto buffer = std::make_unique<char[]>(length);
   file.read(buffer.get(), length);
+  // Create XML DOM.
+  QDomDocument xmlDoc("mswmm-project");
   try {
+    // Parse CFB file.
     CFB::CompoundFileReader reader(buffer.get(), length);
+
+    // Get XML file defining the MSWMM project.
     auto xmlStream = findStream(reader, "ProducerData\\Producer.Dat");
     if (!xmlStream) {
       std::cout << "Can't find project data in file." << std::endl;
       return 1;
     }
-    auto xmlBuffer = std::make_unique<char[]>(xmlStream->size);
+    // The following code assumes that the buffer contains UTF-16 text.
+    if (xmlStream->size % 2 != 0) {
+      std::cout << "Project XML is unexpectedly not encoded as UTF-16. Parsing stopped." << std::endl;
+      return 1;
+    }
+    // Read XML into buffer.
+    auto xmlBuffer = std::make_unique<char[]>(xmlStream->size+2);
     reader.ReadFile(xmlStream, 0, xmlBuffer.get(), xmlStream->size);
+    // Add a zero termination for good measure, so
+    // QString::fromUtf16() definitely terminates.
+    xmlBuffer[xmlStream->size] = 0;
+    xmlBuffer[xmlStream->size+1] = 0;
+    auto xmlString = QString::fromUtf16((char16_t*)xmlBuffer.get()).trimmed();
 
-    std::cout << "MSWMM project definition:\n";
-    std::cout << std::string(xmlBuffer.get(), xmlStream->size) << std::endl;
+    // Parse XML.
+    QString errorStr;
+    int errorLine;
+    int errorCol;
+    if (!xmlDoc.setContent(xmlString, false, &errorStr, &errorLine, &errorCol)) {
+      std::cout << "Can't parse project definition XML." << std::endl;
+      std::cout << errorStr.toStdString() << std::endl;
+      std::cout << "Pos: " << errorLine << "|" << errorCol << std::endl;
+      return 1;
+    }
   }
   catch (CFB::WrongFormat& e) {
     std::cout << e.what() << std::endl;
     return 1;
+  }
+
+
+  // Extract data from XML DOM.
+  auto xmlRoot = xmlDoc.documentElement();
+  auto producerProperties = xmlRoot.firstChildElement("Project")
+                                   .firstChildElement("DataStr")
+                                   .firstChildElement("ProducerProperties");
+  QDomNodeList meta = producerProperties.childNodes();
+  for (int i = 0; i < meta.length(); ++i) {
+    auto attr = meta.at(i).attributes();
+    std::string key   = attr.namedItem("MDTag").nodeValue().toStdString();
+    std::string value = attr.namedItem("MDVal").nodeValue().toStdString();
+    std::cout << key << ": " << value << std::endl;
   }
 
 

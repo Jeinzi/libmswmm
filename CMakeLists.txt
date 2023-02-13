@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(libmswmm VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -33,6 +33,10 @@ if(${CMAKE_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
 Create an empty build directory, change into it and re-invoke cmake.${ColorReset}")
 endif()
 
+# Qt.
+find_package(Qt6 REQUIRED COMPONENTS Xml)
+qt_standard_project_setup()
+
 # Other source files.
 include_directories("src/")
 include_directories("compoundfilereader/src/include/")
@@ -44,3 +48,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 
 # Create output files.
 add_executable(libmswmm-test ${TESTSRC})
+#target_link_libraries(libmswmm-test PRIVATE Qt6::Core)
+target_link_libraries(libmswmm-test PRIVATE Qt6::Xml)
