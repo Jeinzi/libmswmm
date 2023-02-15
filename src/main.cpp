@@ -101,15 +101,27 @@ int main() {
 
   // Extract data from XML DOM.
   auto xmlRoot = xmlDoc.documentElement();
-  auto producerProperties = xmlRoot.firstChildElement("Project")
-                                   .firstChildElement("DataStr")
-                                   .firstChildElement("ProducerProperties");
-  QDomNodeList meta = producerProperties.childNodes();
-  for (int i = 0; i < meta.length(); ++i) {
-    auto attr = meta.at(i).attributes();
+  auto dataStr = xmlRoot.firstChildElement("Project")
+                        .firstChildElement("DataStr");
+  auto producerProperties = dataStr.firstChildElement("ProducerProperties");
+
+  std::cout << "Metadata:\n";
+  QDomNode n = producerProperties.firstChildElement("MetDat");
+  while (!n.isNull()) {
+    auto attr = n.attributes();
     std::string key   = attr.namedItem("MDTag").nodeValue().toStdString();
     std::string value = attr.namedItem("MDVal").nodeValue().toStdString();
-    std::cout << key << ": " << value << std::endl;
+    std::cout << "  " << key << ": " << value << "\n";
+    n = n.nextSiblingElement("MetDat");
+  }
+
+  std::cout << "Files used in project:\n";
+  n = dataStr.firstChildElement("FileInfo");
+  while (!n.isNull()) {
+    auto fileInfo = n.attributes();
+    std::string src = fileInfo.namedItem("SrceFn").nodeValue().toStdString();
+    std::cout << "  " << src << "\n";
+    n = n.nextSiblingElement("FileInfo");
   }
 
 
