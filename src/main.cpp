@@ -13,24 +13,22 @@ CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader
   CFB::COMPOUND_FILE_ENTRY const* ret = nullptr;
   reader.EnumFiles(reader.GetRootEntry(), -1, [&](CFB::COMPOUND_FILE_ENTRY const* entry,
                                                   CFB::utf16string const& u16dir,
-                                                  int level)
+                                                  [[maybe_unused]] int level)
                                                   ->void
   {
     if (reader.IsStream(entry)) {
       std::string name = UTF16ToUTF8(entry->name);
       if (u16dir.length() > 0) {
         std::string dir = UTF16ToUTF8(u16dir.c_str());
-        if (strncmp(streamName, dir.c_str(), dir.length()) == 0 &&
-            streamName[dir.length()] == '\\' &&
-            strcmp(streamName + dir.length() + 1, name.c_str()) == 0)
-        {
+        bool dirMatches = !strncmp(streamName, dir.c_str(), dir.length());
+        bool hasBackslash = streamName[dir.length()] == '\\';
+        bool nameMatches = !strcmp(streamName + dir.length() + 1, name.c_str());
+        if (dirMatches && hasBackslash && nameMatches) {
           ret = entry;
         }
       }
-      else {
-        if (strcmp(streamName, name.c_str()) == 0) {
-          ret = entry;
-        }
+      else if (strcmp(streamName, name.c_str()) == 0) {
+        ret = entry;
       }
     }
   });
