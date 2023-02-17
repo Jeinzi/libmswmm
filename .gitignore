@@ -1,3 +1,5 @@
 assets/*
 !assets/create-assets.sh
 build/*
+example-projects/random
+example-projects/*/*.xml
