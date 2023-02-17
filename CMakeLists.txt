@@ -35,7 +35,7 @@ Create an empty build directory, change into it and re-invoke cmake.${ColorReset
 endif()
 
 # Qt.
-find_package(Qt6 REQUIRED COMPONENTS Xml)
+find_package(Qt6 REQUIRED COMPONENTS Core Xml)
 qt_standard_project_setup()
 
 # Other source files.
@@ -49,5 +49,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 
 # Create output files.
 add_executable(libmswmm-test ${TESTSRC})
-#target_link_libraries(libmswmm-test PRIVATE Qt6::Core)
+target_link_libraries(libmswmm-test PRIVATE Qt6::Core)
 target_link_libraries(libmswmm-test PRIVATE Qt6::Xml)

@@ -18,10 +18,12 @@ See LICENCE file for the full license text.
 #include <fstream>
 #include <iostream>
 
-#include <QtXml/QDomDocument>
+#include <QString>
+#include <QDomDocument>
 
 #include "utf.h"
 #include "compoundfilereader.h"
+#include "TimelineItem.hpp"
 
 
 
@@ -49,6 +51,27 @@ CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader
     }
   });
   return ret;
+}
+
+
+/**
+ * @brief Get an XML DOM node that has a specific attribute.
+ *
+ * @param parent The parent to search.
+ * @param tag The name of the tag searched.
+ * @param attr The name of the attribute that tag should carry.
+ * @param attrVal The value the attribute must have.
+ * @return QDomElement The first DOM element found; might be Null.
+ */
+QDomElement getTagWithAttr(QDomNode const& parent, QString tag, QString attr, QString attrVal) {
+  QDomElement n = parent.firstChildElement(tag);
+  while (!n.isNull()) {
+    if (n.hasAttribute(attr) && n.attribute(attr) == attrVal) {
+      break;
+    }
+    n = n.nextSiblingElement(tag);
+  }
+  return n;
 }
 
 
@@ -120,7 +143,7 @@ int main() {
   auto producerProperties = dataStr.firstChildElement("ProducerProperties");
 
   std::cout << "Metadata:\n";
-  QDomNode n = producerProperties.firstChildElement("MetDat");
+  QDomElement n = producerProperties.firstChildElement("MetDat");
   while (!n.isNull()) {
     auto attr = n.attributes();
     std::string key   = attr.namedItem("MDTag").nodeValue().toStdString();
@@ -136,6 +159,56 @@ int main() {
     std::string src = fileInfo.namedItem("SrceFn").nodeValue().toStdString();
     std::cout << "  " << src << "\n";
     n = n.nextSiblingElement("FileInfo");
+  }
+
+
+  // Get video track.
+  std::cout << "Video timeline:\n";
+  n = getTagWithAttr(dataStr, "Track", "TrackTyp", "0");
+  if (n.isNull()) {
+    std::cout << "Can't find video track!" << std::endl;
+    return 1;
+  }
+
+  // Get array of video clips.
+  QString videoArrUid = n.firstChildElement("TrkClips").attribute("UID");
+  QDomElement videoArr = getTagWithAttr(dataStr, "TIArr", "UID", videoArrUid);
+  n = videoArr.firstChildElement("UID");
+  while (!n.isNull()) {
+    mswmm::TimelineItem ti;
+    QString tmlnItemUid = n.attribute("UID");
+    QDomElement tmlnItem = getTagWithAttr(dataStr, "", "UID", tmlnItemUid);
+    ti.timelineStart = tmlnItem.attribute("TmlnSrt").toFloat();
+    ti.timelineEnd = tmlnItem.attribute("TmlnEnd").toFloat();
+    ti.sourceStart = tmlnItem.attribute("ClpSrt").toFloat();
+    ti.sourceEnd = tmlnItem.attribute("ClpEnd").toFloat();
+
+    if (tmlnItem.tagName() == "TiTitleSource") {
+      std::cout << "Title from " << ti.timelineStart << "s to " << ti.timelineEnd << "s\n";
+      n = n.nextSiblingElement("UID");
+      continue;
+    }
+
+    QString clipItemUid = tmlnItem.firstChildElement("ClipWMItem").attribute("UID");
+    QDomElement clipItem = getTagWithAttr(dataStr, "", "UID", clipItemUid);
+    QString avSourceUid = clipItem.firstChildElement("Srce").attribute("UID");
+    QDomElement avSource = getTagWithAttr(dataStr, "AVSource", "UID", avSourceUid);
+    QString fileInfoUid = avSource.attribute("FileID");
+    QDomElement fileInfo = getTagWithAttr(dataStr, "FileInfo", "FileID", fileInfoUid);
+
+    ti.name = clipItem.attribute("ClpNam").toStdString();
+    ti.srcPath = fileInfo.attribute("SrceFn").toStdString();
+    ti.fileSizeKiBi = avSource.attribute("FileSize").toLongLong();
+    ti.srcSizePx.x = avSource.attribute("SrcWidth").toLongLong();
+    ti.srcSizePx.y = avSource.attribute("SrcHeight").toLongLong();
+
+
+    std::cout << ti.name << " from " << ti.timelineStart << "s to " << ti.timelineEnd << "s\n"
+              << "  - Path: " << ti.srcPath << "\n"
+              << "  - Part taken from file: " << ti.sourceStart << "s to " << ti.sourceEnd << "s\n"
+              << "  - File size: ca. " << ti.fileSizeKiBi << "kiB\n"
+              << "  - Width x Height: " << ti.srcSizePx.x << "px x " << ti.srcSizePx.y << "px\n";
+    n = n.nextSiblingElement("UID");
   }
 
 
