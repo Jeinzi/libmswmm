@@ -26,6 +26,17 @@ namespace mswmm {
 struct size {
   size_t x;
   size_t y;
+
+  bool operator!=(size const& rhs) const {
+    if (rhs.x != x || rhs.y != y) {
+      return true;
+    }
+    return false;
+  }
+
+  bool operator==(size const& rhs) const {
+    return !(*this != rhs);
+  }
 };
 
 

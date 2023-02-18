@@ -151,9 +151,12 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
   }
   std::stringstream command;
   std::stringstream filter;
-  unsigned int i = 0;
-
   command << "ffmpeg ";
+
+  size lastSizePx;
+  bool hasImages = false;
+  bool hasVideos = false;
+  unsigned int i = 0;
   float lastEndTime = 0;
   for (auto const& ti: videoTimeline) {
     if (ti->timelineStart < lastEndTime) {
@@ -162,12 +165,32 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
 
     // Images should be easy to include, title sequences not at all.
     TimelineVideoItem* tvi = dynamic_cast<TimelineVideoItem*>(ti);
-    if (!tvi) {
-      throw std::runtime_error("Only videos are currently supported on the timeline.");
+    TimelineStillItem* tsi = dynamic_cast<TimelineStillItem*>(ti);
+    std::string path;
+    size currentSizePx;
+    if (tvi) {
+      hasVideos = true;
+      path = tvi->srcPath;
+      currentSizePx = tvi->srcSizePx;
+    }
+    else if (tsi) {
+      hasImages = true;
+      path = tsi->srcPath;
+      currentSizePx = tsi->srcSizePx;
+    }
+    else {
+      throw std::runtime_error("Only videos and images are currently supported on the timeline.");
+    }
+
+    if (hasVideos && hasImages) {
+      throw std::runtime_error("Timelines with both videos and images are not yet supported.");
+    }
+
+    if (i != 0 && currentSizePx != lastSizePx) {
+      throw std::runtime_error("Images don't have the same size.");
     }
 
     // Replace substrings if requested.
-    std::string path = tvi->srcPath;
     for (auto const& sp: substitutions) {
       while (true) {
         size_t startPos = path.find(sp.first);
@@ -180,14 +203,34 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
       }
     }
 
-    command << "-ss " << tvi->sourceStart
-            << " -to " << tvi->sourceEnd
-            << " -i '" << path << "' ";
-    filter << "[" << i << ":v] [" << i << ":a] ";
+    // Assemble command.
+    if (tvi) {
+      command << "-ss " << tvi->sourceStart
+              << " -to " << tvi->sourceEnd
+              << " -i '" << path << "' ";
+      filter << "[" << i << ":v] [" << i << ":a] ";
+    }
+    else if (tsi) {
+      command << "-loop 1 -framerate 24 "
+              << "-t " << ti->timelineEnd - ti->timelineStart
+              << " -i '" << path << "' ";
+      filter << "[" << i << "] ";
+    }
+
+
     lastEndTime = ti->timelineEnd;
+    lastSizePx = currentSizePx;
     ++i;
   }
-  command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=1 [v] [a]' -map '[v]' -map '[a]' ";
+
+  // Add concatenation filter.
+  if (hasVideos) {
+    command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=1 [v] [a]' -map '[v]' -map '[a]' ";
+  }
+  else {
+    command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=0' ";
+  }
+
   command << "output.mp4";
   return command.str();
 }

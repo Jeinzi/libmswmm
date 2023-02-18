@@ -9,7 +9,12 @@ I have a lot of old project files and I guess many other people have too. I want
 - Print project XML
 - Print video timeline, but without detailed information on title sequences
 - Print audio timeline
-- Generate an ffmpeg command to render the project. This currently works only in simple cases, when the project consist solely out of non overlapping video files. String substitutions on the source file paths are supported, for example to switch `\` to `/` and `@:MyPictures` to something like `/home/jeinzi/Pictures`. The title overlay and music timelines are completely ignored at the moment.
+- Generate an ffmpeg command to render the project
+  - This currently works only in simple cases:
+    - When the video timeline consists solely out of non overlapping video files.
+    - When the video timeline consists solely out of non overlapping pictures with equal dimensions.
+  - The title overlay and music timelines are completely ignored at the moment, as are effects.
+  - String substitutions on the source file paths are supported, for example to switch `\` to `/` and `@:MyPictures` to something like `/home/jeinzi/Pictures`.
 
 ## Building
 Just follow the commands in or execute make.sh.
@@ -23,4 +28,4 @@ Requirements:
 This project is licensed under the GPLv2 or at your choice, any later version. The git submodule "compoundfilereader" is licensed under the MIT license. Files in the assets folder have various licenses, see *.license files for more information.
 
 I chose the GPL because I want to provide the Free Software community and its video editors with a feature most proprietary products don't offer.
-Nearly all Free Software video editors are licensed under the GPLv2 or 3, so there would be no problems to integrate this project into one of them. The only exception I found is [Pitivi](https://gitlab.gnome.org/GNOME/pitivi), which is distributed under the terms of the LGPL2.1 or later. As far as I understand it, integration into Pitivi would be possible, but the result would fall under the GPLv2 or later.
+Nearly all Free Software video editors are licensed under the GPLv2 or 3, so there would be no problems to integrate this project into one of them. The only exception I found is [Pitivi](https://gitlab.gnome.org/GNOME/pitivi), which is distributed under the terms of the LGPL2.1 or later. As far as I understand it, integration into Pitivi would be possible, but [the result would fall under the GPLv2 or later](https://www.gnu.org/licenses/gpl-faq.html#AllCompatibility).
