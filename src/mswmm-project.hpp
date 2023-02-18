@@ -19,6 +19,7 @@ See LICENCE file for the full license text.
 
 #include <string>
 #include <vector>
+#include <sstream>
 #include <fstream>
 #include <stdexcept>
 
@@ -45,6 +46,7 @@ class Project {
     void printMetadata(std::ostream& stream, uint8_t indent = 0) const;
     void printFiles(std::ostream& stream, uint8_t indent = 0) const;
     void printVideoTimeline(std::ostream& stream, uint8_t indent = 0) const;
+    std::string generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const;
 
     bool hasTitleSequences;
     QDomDocument xmlDoc;
@@ -65,7 +67,6 @@ class Project {
     CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* streamName) const;
 };
 
-}
-
+} // Namespace mswmm
 
 #endif

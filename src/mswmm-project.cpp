@@ -121,6 +121,64 @@ void Project::printVideoTimeline(std::ostream& stream, uint8_t indent) const {
 
 
 
+/**
+ * @brief Generate an ffmpeg command to render the video described
+ * in the Movie Maker project, if possible. Throws exceptions if not.
+ * Only the video timeline is used for now.
+ *
+ * @param substitutions A list of string substitutions that will be performed on the source file paths.
+ * All occurances of pair.first will be replaced with pair.second.
+ * @return std::string The ffmpeg command.
+ */
+std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const {
+  if (videoTimeline.size() == 0) {
+    throw std::runtime_error("Empty video timeline.");
+  }
+  std::stringstream command;
+  std::stringstream filter;
+  unsigned int i = 0;
+
+  command << "ffmpeg ";
+  float lastEndTime = 0;
+  for (auto const& ti: videoTimeline) {
+    if (ti->timelineStart < lastEndTime) {
+      throw std::runtime_error("Timeline items overlap, but transitions are not yet supported.");
+    }
+
+    // Images should be easy to include, title sequences not at all.
+    TimelineVideoItem* tvi = dynamic_cast<TimelineVideoItem*>(ti);
+    if (!tvi) {
+      throw std::runtime_error("Only videos are currently supported on the timeline.");
+    }
+
+    // Replace substrings if requested.
+    std::string path = tvi->srcPath;
+    for (auto const& sp: substitutions) {
+      while (true) {
+        size_t startPos = path.find(sp.first);
+        if (startPos == std::string::npos) {
+          break;
+        }
+        else {
+          path.replace(startPos, sp.first.length(), sp.second);
+        }
+      }
+    }
+
+    command << "-ss " << tvi->sourceStart
+            << " -to " << tvi->sourceEnd
+            << " -i '" << path << "' ";
+    filter << "[" << i << ":v] [" << i << ":a] ";
+    lastEndTime = ti->timelineEnd;
+    ++i;
+  }
+  command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=1 [v] [a]' -map '[v]' -map '[a]' ";
+  command << "output.mp4";
+  return command.str();
+}
+
+
+
 void Project::analyzeXml() {
   // Extract data from XML DOM.
   auto xmlRoot = xmlDoc.documentElement();

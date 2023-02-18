@@ -14,6 +14,7 @@ GNU General Public License for more details.
 
 See LICENCE file for the full license text.
 *******************************************************************/
+#include <string>
 #include <cstring>
 #include <iostream>
 
@@ -24,7 +25,7 @@ See LICENCE file for the full license text.
 int main(int argc, char** argv) {
   if (argc <= 2) {
     std::cout << "Usage: ./programname command path/to/file.MSWMM\n";
-    std::cout << "        where command = info|xml" << std::endl;
+    std::cout << "        where command = info|xml|ffmpeg" << std::endl;
     return 1;
   }
 
@@ -36,12 +37,16 @@ int main(int argc, char** argv) {
   else if (strcmp(argv[1], "info") == 0) {
     std::cout << "Metadata:\n";
     project.printMetadata(std::cout, 2);
-
     std::cout << "Files used in project:\n";
     project.printFiles(std::cout, 2);
-
     std::cout << "Video timeline:\n";
     project.printVideoTimeline(std::cout, 2);
+  }
+  else if (strcmp(argv[1], "ffmpeg") == 0) {
+    std::vector<std::pair<std::string, std::string>> substitutions;
+    substitutions.emplace_back(std::pair("\\", "/"));
+    substitutions.emplace_back(std::pair("@:MyPictures", "/home/jeinzi/Bilder"));
+    std::cout << project.generateFfmpegCommand(substitutions) << std::endl;
   }
   else {
     std::cout << "Command not known." << std::endl;
