@@ -95,27 +95,27 @@ void Project::printXml(std::ostream& target, uint8_t indent) const {
 
 
 
-void Project::printMetadata(std::ostream& stream, uint8_t indent) const {
-  stream << std::string(indent, ' ') << "Author: " << author << '\n';
-  stream << std::string(indent, ' ') << "Title: " << title << '\n';
-  stream << std::string(indent, ' ') << "Description: " << description << '\n';
-  stream << std::string(indent, ' ') << "Copyright: " << copyright << '\n';
-  stream << std::string(indent, ' ') << "Rating: " << rating << '\n';
+void Project::printMetadata(std::ostream& target, uint8_t indent) const {
+  target << std::string(indent, ' ') << "Author: " << author << '\n';
+  target << std::string(indent, ' ') << "Title: " << title << '\n';
+  target << std::string(indent, ' ') << "Description: " << description << '\n';
+  target << std::string(indent, ' ') << "Copyright: " << copyright << '\n';
+  target << std::string(indent, ' ') << "Rating: " << rating << '\n';
 }
 
 
 
-void Project::printFiles(std::ostream& stream, uint8_t indent) const {
+void Project::printFiles(std::ostream& target, uint8_t indent) const {
   for (auto const& f: sourceFiles) {
-    stream << std::string(indent, ' ') << f << '\n';
+    target << std::string(indent, ' ') << f << '\n';
   }
 }
 
 
 
-void Project::printVideoTimeline(std::ostream& stream, uint8_t indent) const {
+void Project::printVideoTimeline(std::ostream& target, uint8_t indent) const {
   for (auto const& ti: videoTimeline) {
-    ti->printItem(stream, indent);
+    ti->printItem(target, indent);
   }
 }
 

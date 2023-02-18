@@ -43,9 +43,9 @@ class Project {
     Project(std::string path);
     ~Project();
     void printXml(std::ostream& target, uint8_t indent = 2) const;
-    void printMetadata(std::ostream& stream, uint8_t indent = 0) const;
-    void printFiles(std::ostream& stream, uint8_t indent = 0) const;
-    void printVideoTimeline(std::ostream& stream, uint8_t indent = 0) const;
+    void printMetadata(std::ostream& target, uint8_t indent = 0) const;
+    void printFiles(std::ostream& target, uint8_t indent = 0) const;
+    void printVideoTimeline(std::ostream& target, uint8_t indent = 0) const;
     std::string generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const;
 
     bool hasTitleSequences;
@@ -64,7 +64,7 @@ class Project {
     void getVideoTimeline(QDomElement const& dataStr);
 
     QDomElement getTagWithAttr(QDomNode const& parent, QString tag, QString attr, QString attrVal) const;
-    CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* streamName) const;
+    CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* targetName) const;
 };
 
 } // Namespace mswmm
