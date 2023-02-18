@@ -49,7 +49,6 @@ class Project {
     std::string generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const;
 
     bool hasTitleSequences;
-    QDomDocument xmlDoc;
     std::string author;
     std::string title;
     std::string description;
@@ -62,9 +61,10 @@ class Project {
     void getMetadata(QDomElement const& dataStr);
     void getFileList(QDomElement const& dataStr);
     void getVideoTimeline(QDomElement const& dataStr);
-
     QDomElement getTagWithAttr(QDomNode const& parent, QString tag, QString attr, QString attrVal) const;
     CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* targetName) const;
+
+    QDomDocument xmlDoc;
 };
 
 } // Namespace mswmm

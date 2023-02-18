@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
   }
   else if (strcmp(argv[1], "ffmpeg") == 0) {
     std::vector<std::pair<std::string, std::string>> substitutions;
-    substitutions.emplace_back(std::pair("\\", "/"));
-    substitutions.emplace_back(std::pair("@:MyPictures", "/home/jeinzi/Bilder"));
+    substitutions.emplace_back("\\", "/");
+    substitutions.emplace_back("@:MyPictures", "/home/jeinzi/Bilder");
     std::cout << project.generateFfmpegCommand(substitutions) << std::endl;
   }
   else {

@@ -227,8 +227,7 @@ void Project::getMetadata(QDomElement const& dataStr) {
 void Project::getFileList(QDomElement const& dataStr) {
   QDomElement n = dataStr.firstChildElement("FileInfo");
   while (!n.isNull()) {
-    auto fileInfo = n.attributes();
-    auto src = fileInfo.namedItem("SrceFn").nodeValue().toStdString();
+    auto src = n.attribute("SrceFn").toStdString();
     sourceFiles.emplace_back(std::move(src));
     n = n.nextSiblingElement("FileInfo");
   }
@@ -271,7 +270,7 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
     // Only images and videos have the following attributes.
     std::string name = clipItem.attribute("ClpNam").toStdString();
     std::string srcPath = fileInfo.attribute("SrceFn").toStdString();
-    size_t fileSizeKiB = avSource.attribute("FileSize").toLongLong();
+    size_t fileSizeKiB = avSource.attribute("FileSize").toULong();
     mswmm::size srcSizePx {
       avSource.attribute("SrcWidth").toULong(),
       avSource.attribute("SrcHeight").toULong()
