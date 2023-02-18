@@ -12,9 +12,9 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-See LICENCE file for the full license text.
+See LICENSE file for the full license text.
 *******************************************************************/
-#include "mswmm-project.hpp"
+#include "Project.hpp"
 
 
 namespace mswmm {
@@ -127,7 +127,7 @@ void Project::printVideoTimeline(std::ostream& stream, uint8_t indent) const {
  * Only the video timeline is used for now.
  *
  * @param substitutions A list of string substitutions that will be performed on the source file paths.
- * All occurances of pair.first will be replaced with pair.second.
+ * All occurrences of pair.first will be replaced with pair.second.
  * @return std::string The ffmpeg command.
  */
 std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const {
@@ -243,7 +243,8 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
     throw CorruptFileError("Can't find video track!");
   }
 
-  // Get array of video clips.
+  // Get array of video timeline items.
+  // May contain videos, images and title sequences.
   QString videoArrUid = n.firstChildElement("TrkClips").attribute("UID");
   QDomElement videoArr = getTagWithAttr(dataStr, "TIArr", "UID", videoArrUid);
   n = videoArr.firstChildElement("UID");
@@ -270,7 +271,7 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
     // Only images and videos have the following attributes.
     std::string name = clipItem.attribute("ClpNam").toStdString();
     std::string srcPath = fileInfo.attribute("SrceFn").toStdString();
-    size_t fileSizeKiBi = avSource.attribute("FileSize").toLongLong();
+    size_t fileSizeKiB = avSource.attribute("FileSize").toLongLong();
     mswmm::size srcSizePx {
       avSource.attribute("SrcWidth").toULong(),
       avSource.attribute("SrcHeight").toULong()
@@ -294,7 +295,7 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
       ti->timelineEnd = timelineEnd;
       ti->name = name;
       ti->srcPath = srcPath;
-      ti->fileSizeKiBi = fileSizeKiBi;
+      ti->fileSizeKiB = fileSizeKiB;
       ti->srcSizePx = srcSizePx;
       videoTimeline.push_back(ti);
     }
@@ -304,7 +305,7 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
       ti->timelineEnd = timelineEnd;
       ti->name = name;
       ti->srcPath = srcPath;
-      ti->fileSizeKiBi = fileSizeKiBi;
+      ti->fileSizeKiB = fileSizeKiB;
       ti->srcSizePx = srcSizePx;
       ti->sourceStart = sourceStart;
       ti->sourceEnd = sourceEnd;

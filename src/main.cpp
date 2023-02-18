@@ -12,13 +12,13 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-See LICENCE file for the full license text.
+See LICENSE file for the full license text.
 *******************************************************************/
 #include <string>
 #include <cstring>
 #include <iostream>
 
-#include "mswmm-project.hpp"
+#include "Project.hpp"
 
 
 

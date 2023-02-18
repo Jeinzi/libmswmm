@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-See LICENCE file for the full license text.
+See LICENSE file for the full license text.
 *******************************************************************/
 #ifndef _TIMELINEITEM_HPP
 #define _TIMELINEITEM_HPP
@@ -52,14 +52,14 @@ struct TimelineTitleItem : public TimelineItem {
 struct TimelineStillItem : public TimelineItem {
   std::string srcPath;
   std::string name;
-  size_t fileSizeKiBi;
+  size_t fileSizeKiB;
   size srcSizePx;
 
   void printItem(std::ostream& stream, uint8_t indent = 0) const override {
     std::string indentStr = std::string(indent, ' ');
     stream << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
            << indentStr << "  - Path: " << srcPath << "\n"
-           << indentStr << "  - File size: ca. " << fileSizeKiBi << "kiB\n"
+           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
            << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
   }
 };
@@ -75,7 +75,7 @@ struct TimelineVideoItem : public TimelineStillItem {
     stream << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
            << indentStr << "  - Path: " << srcPath << "\n"
            << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
-           << indentStr << "  - File size: ca. " << fileSizeKiBi << "kiB\n"
+           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
            << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
   }
 };

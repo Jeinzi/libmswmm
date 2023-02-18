@@ -21,5 +21,5 @@ Requirements:
 ## License
 This project is licensed under the GPLv2 or at your choice, any later version. The git submodule "compoundfilereader" is licensed under the MIT license.
 
-I chose the GPL because I want to provide Free Software video editors with a feature most proprietary products don't offer.
-Nearly all common Free Software video editors are licensed under the GPLv2 or 3, so there would be no problems to integrate this project into one of them. The only exception I found is [Pitivi](https://gitlab.gnome.org/GNOME/pitivi), which is distributed under the terms of the LGPL2.1 or later. As far as I understand it, integration into Pitivi would be possible, but the result would fall under the GPLv2 or later.
+I chose the GPL because I want to provide the Free Software community and its video editors with a feature most proprietary products don't offer.
+Nearly all Free Software video editors are licensed under the GPLv2 or 3, so there would be no problems to integrate this project into one of them. The only exception I found is [Pitivi](https://gitlab.gnome.org/GNOME/pitivi), which is distributed under the terms of the LGPL2.1 or later. As far as I understand it, integration into Pitivi would be possible, but the result would fall under the GPLv2 or later.
