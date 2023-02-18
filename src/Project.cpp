@@ -85,6 +85,9 @@ Project::~Project() {
   for (auto& ti: videoTimeline) {
     delete ti;
   }
+  for (auto& ti: audioTimeline) {
+    delete ti;
+  }
 }
 
 
@@ -113,12 +116,23 @@ void Project::printFiles(std::ostream& target, uint8_t indent) const {
 
 
 
-void Project::printVideoTimeline(std::ostream& target, uint8_t indent) const {
-  for (auto const& ti: videoTimeline) {
+void Project::printMediaTimeline(std::ostream& target, TrackType trackId, uint8_t indent) const {
+  std::vector<TimelineItem*> const* timeline;
+  switch (trackId) {
+    case TrackType::VIDEO:
+      timeline = &videoTimeline;
+      break;
+    case TrackType::AUDIO:
+      timeline = &audioTimeline;
+      break;
+    default:
+      return;
+  }
+
+  for (auto const& ti: *timeline) {
     ti->printItem(target, indent);
   }
 }
-
 
 
 /**
@@ -191,7 +205,8 @@ void Project::analyzeXml() {
 
   getMetadata(dataStr);
   getFileList(dataStr);
-  getVideoTimeline(dataStr);
+  getMediaTimeline(dataStr, TrackType::VIDEO);
+  getMediaTimeline(dataStr, TrackType::AUDIO);
 }
 
 
@@ -235,15 +250,29 @@ void Project::getFileList(QDomElement const& dataStr) {
 
 
 
-void Project::getVideoTimeline(QDomElement const& dataStr) {
-  // Get video track.
-  QDomElement n = getTagWithAttr(dataStr, "Track", "TrackTyp", "0");
-  if (n.isNull()) {
-    throw CorruptFileError("Can't find video track!");
+void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
+  std::vector<TimelineItem*>* timeline;
+  switch (trackId) {
+    case TrackType::VIDEO:
+      timeline = &videoTimeline;
+      break;
+    case TrackType::AUDIO:
+      timeline = &audioTimeline;
+      break;
+    default:
+      throw std::runtime_error("Other timelines than video and audio are currently not supported.");
   }
 
-  // Get array of video timeline items.
-  // May contain videos, images and title sequences.
+  // Get video or audio track.
+  auto trackIdStr = QString::number(static_cast<uint>(trackId));
+  QDomElement n = getTagWithAttr(dataStr, "Track", "TrackTyp", trackIdStr);
+  if (n.isNull()) {
+    std::string trackName = (trackId == TrackType::VIDEO ? "video" : "audio");
+    throw CorruptFileError("Can't find " + trackName + " track!");
+  }
+
+  // Get array of timeline items.
+  // May contain videos, images, audio files and title sequences.
   QString videoArrUid = n.firstChildElement("TrkClips").attribute("UID");
   QDomElement videoArr = getTagWithAttr(dataStr, "TIArr", "UID", videoArrUid);
   n = videoArr.firstChildElement("UID");
@@ -267,28 +296,38 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
     float timelineStart = tmlnItem.attribute("TmlnSrt").toFloat();
     float timelineEnd = tmlnItem.attribute("TmlnEnd").toFloat();
 
-    // Only images and videos have the following attributes.
+    // Only images, videos and audio files have the following attributes.
     std::string name = clipItem.attribute("ClpNam").toStdString();
     std::string srcPath = fileInfo.attribute("SrceFn").toStdString();
     size_t fileSizeKiB = avSource.attribute("FileSize").toULong();
+
+    // X and Y dimensions are only non-zero for images and videos.
     mswmm::size srcSizePx {
       avSource.attribute("SrcWidth").toULong(),
       avSource.attribute("SrcHeight").toULong()
     };
 
-    // Only for videos is it possible to only take a part of them.
+    // Taking only parts of the input files is only possible
+    // for video and audio files.
     float sourceStart = tmlnItem.attribute("ClpSrt").toFloat();
     float sourceEnd = tmlnItem.attribute("ClpEnd").toFloat();
 
 
-    if (tmlnItem.tagName() == "TiTitleSource") {
+    auto tag = tmlnItem.tagName();
+    if (tag == "TiTitleSource") {
+      if (trackId == TrackType::AUDIO) {
+        throw CorruptFileError("Title sequence in audio timeline.");
+      }
       hasTitleSequences = true;
       auto ti = new TimelineTitleItem;
       ti->timelineStart = timelineStart;
       ti->timelineEnd = timelineEnd;
-      videoTimeline.push_back(ti);
+      timeline->push_back(ti);
     }
-    else if (tmlnItem.tagName() == "TmlnStillItem") {
+    else if (tag == "TmlnStillItem") {
+      if (trackId == TrackType::AUDIO) {
+        throw CorruptFileError("Picture in audio timeline.");
+      }
       auto ti = new TimelineStillItem;
       ti->timelineStart = timelineStart;
       ti->timelineEnd = timelineEnd;
@@ -296,19 +335,27 @@ void Project::getVideoTimeline(QDomElement const& dataStr) {
       ti->srcPath = srcPath;
       ti->fileSizeKiB = fileSizeKiB;
       ti->srcSizePx = srcSizePx;
-      videoTimeline.push_back(ti);
+      timeline->push_back(ti);
     }
-    else if (tmlnItem.tagName() == "TmlnVideoItem") {
-      auto ti = new TimelineVideoItem;
-      ti->timelineStart = timelineStart;
-      ti->timelineEnd = timelineEnd;
-      ti->name = name;
-      ti->srcPath = srcPath;
-      ti->fileSizeKiB = fileSizeKiB;
-      ti->srcSizePx = srcSizePx;
-      ti->sourceStart = sourceStart;
-      ti->sourceEnd = sourceEnd;
-      videoTimeline.push_back(ti);
+    else if (tag == "TmlnVideoItem" || tag == "TmlnAudioItem") {
+      TimelineVideoItem** ti = new TimelineVideoItem*;
+      if (tag == "TmlnVideoItem") {
+        *ti = new TimelineVideoItem;
+      }
+      else {
+        *ti = new TimelineAudioItem;
+      }
+
+      (*ti)->timelineStart = timelineStart;
+      (*ti)->timelineEnd = timelineEnd;
+      (*ti)->name = name;
+      (*ti)->srcPath = srcPath;
+      (*ti)->fileSizeKiB = fileSizeKiB;
+      (*ti)->srcSizePx = srcSizePx;
+      (*ti)->sourceStart = sourceStart;
+      (*ti)->sourceEnd = sourceEnd;
+      timeline->push_back(*ti);
+      delete ti;
     }
   }
 }

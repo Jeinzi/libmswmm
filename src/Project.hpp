@@ -38,6 +38,14 @@ struct CorruptFileError : public std::runtime_error {
 
 
 
+enum class TrackType {
+  VIDEO = 0,
+  AUDIO = 1,
+  SOMETHING = 5 // This is probably the title overlay timeline, but not sure
+};
+
+
+
 class Project {
   public:
     Project(std::string path);
@@ -45,7 +53,7 @@ class Project {
     void printXml(std::ostream& target, uint8_t indent = 2) const;
     void printMetadata(std::ostream& target, uint8_t indent = 0) const;
     void printFiles(std::ostream& target, uint8_t indent = 0) const;
-    void printVideoTimeline(std::ostream& target, uint8_t indent = 0) const;
+    void printMediaTimeline(std::ostream& target, TrackType trackId, uint8_t indent = 0) const;
     std::string generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const;
 
     bool hasTitleSequences;
@@ -56,11 +64,12 @@ class Project {
     std::string rating;
     std::vector<std::string> sourceFiles;
     std::vector<mswmm::TimelineItem*> videoTimeline;
+    std::vector<mswmm::TimelineItem*> audioTimeline;
   private:
     void analyzeXml();
     void getMetadata(QDomElement const& dataStr);
     void getFileList(QDomElement const& dataStr);
-    void getVideoTimeline(QDomElement const& dataStr);
+    void getMediaTimeline(QDomElement const& dataStr, TrackType trackId);
     QDomElement getTagWithAttr(QDomNode const& parent, QString tag, QString attr, QString attrVal) const;
     CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* targetName) const;
 

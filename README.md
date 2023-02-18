@@ -8,6 +8,7 @@ I have a lot of old project files and I guess many other people have too. I want
 - Print paths to media files used in project
 - Print project XML
 - Print video timeline, but without detailed information on title sequences
+- Print audio timeline
 - Generate an ffmpeg command to render the project. This currently works only in simple cases, when the project consist solely out of non overlapping video files. String substitutions on the source file paths are supported, for example to switch `\` to `/` and `@:MyPictures` to something like `/home/jeinzi/Pictures`. The title overlay and music timelines are completely ignored at the moment.
 
 ## Building

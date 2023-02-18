@@ -40,7 +40,9 @@ int main(int argc, char** argv) {
     std::cout << "Files used in project:\n";
     project.printFiles(std::cout, 2);
     std::cout << "Video timeline:\n";
-    project.printVideoTimeline(std::cout, 2);
+    project.printMediaTimeline(std::cout, mswmm::TrackType::VIDEO, 2);
+    std::cout << "Audio timeline:\n";
+    project.printMediaTimeline(std::cout, mswmm::TrackType::AUDIO, 2);
   }
   else if (strcmp(argv[1], "ffmpeg") == 0) {
     std::vector<std::pair<std::string, std::string>> substitutions;

@@ -80,6 +80,18 @@ struct TimelineVideoItem : public TimelineStillItem {
   }
 };
 
+
+
+struct TimelineAudioItem : TimelineVideoItem {
+  void printItem(std::ostream& target, uint8_t indent = 0) const override {
+    std::string indentStr = std::string(indent, ' ');
+    target << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
+           << indentStr << "  - Path: " << srcPath << "\n"
+           << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
+           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n";
+  }
+};
+
 } // Namespace mswmm
 
 #endif
