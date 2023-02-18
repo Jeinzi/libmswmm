@@ -3,6 +3,8 @@ The goal of this project is to create a library and tools to read files created 
 
 I have a lot of old project files and I guess many other people have too. I want to make it possible to view the contents of those projects so one can at least recreate them manually in a modern video editor. It also would be really nice to have converters/importers for Open Source video editors, or to generate an ffmpeg command.
 
+While it is my goal to extract all relevant information from the Movie Maker file, this won't suffice for rendering all projects true to the original. I don't plan on writing shaders for complex effects ("Film Age") and transitions, but this library should provide all parameters for them.
+
 ## Current Capabilities
 - Print project metadata
 - Print paths to media files used in project
