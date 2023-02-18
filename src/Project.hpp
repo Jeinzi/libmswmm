@@ -57,6 +57,7 @@ class Project {
     std::string generateFfmpegCommand(std::vector<std::pair<std::string, std::string>> substitutions) const;
 
     bool hasTitleSequences;
+    size aspectRatio;
     std::string author;
     std::string title;
     std::string description;

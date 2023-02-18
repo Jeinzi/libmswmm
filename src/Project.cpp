@@ -99,6 +99,7 @@ void Project::printXml(std::ostream& target, uint8_t indent) const {
 
 
 void Project::printMetadata(std::ostream& target, uint8_t indent) const {
+  target << std::string(indent, ' ') << "Aspect ratio: " << aspectRatio.x << ":" << aspectRatio.y << '\n';
   target << std::string(indent, ' ') << "Author: " << author << '\n';
   target << std::string(indent, ' ') << "Title: " << title << '\n';
   target << std::string(indent, ' ') << "Description: " << description << '\n';
@@ -213,6 +214,9 @@ void Project::analyzeXml() {
 
 void Project::getMetadata(QDomElement const& dataStr) {
   QDomElement producerProperties = dataStr.firstChildElement("ProducerProperties");
+  aspectRatio.x = producerProperties.attribute("ProjectAspectRatioX").toULong();
+  aspectRatio.y = producerProperties.attribute("ProjectAspectRatioY").toULong();
+
   QDomElement n = producerProperties.firstChildElement("MetDat");
   while (!n.isNull()) {
     auto attr = n.attributes();
