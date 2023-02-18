@@ -41,13 +41,13 @@ qt_standard_project_setup()
 # Other source files.
 include_directories("src/")
 include_directories("compoundfilereader/src/include/")
-file(GLOB TESTSRC "src/*.cpp")
+file(GLOB TOOLSRC "src/*.cpp")
 
 # Compiler options.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 
 # Create output files.
-add_executable(libmswmm-test ${TESTSRC})
-target_link_libraries(libmswmm-test PRIVATE Qt6::Core)
-target_link_libraries(libmswmm-test PRIVATE Qt6::Xml)
+add_executable(mswmm-tool ${TOOLSRC})
+target_link_libraries(mswmm-tool PRIVATE Qt6::Core)
+target_link_libraries(mswmm-tool PRIVATE Qt6::Xml)

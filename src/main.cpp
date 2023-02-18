@@ -17,6 +17,7 @@ See LICENSE file for the full license text.
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
 
 #include "Project.hpp"
 
@@ -24,8 +25,10 @@ See LICENSE file for the full license text.
 
 int main(int argc, char** argv) {
   if (argc <= 2) {
-    std::cout << "Usage: ./programname command path/to/file.MSWMM\n";
-    std::cout << "        where command = info|xml|ffmpeg" << std::endl;
+    std::string programName(argv[0]);
+    std::cout << "Usage: " << programName
+              << " command path/to/file.MSWMM\n"
+              << "       where command = info|xml|ffmpeg" << std::endl;
     return 1;
   }
 
@@ -48,7 +51,15 @@ int main(int argc, char** argv) {
     std::vector<std::pair<std::string, std::string>> substitutions;
     substitutions.emplace_back("\\", "/");
     substitutions.emplace_back("@:MyPictures", "/home/jeinzi/Bilder");
-    std::cout << project.generateFfmpegCommand(substitutions) << std::endl;
+    std::string command;
+    try {
+      command = project.generateFfmpegCommand(substitutions);
+    }
+    catch (std::runtime_error& e) {
+      std::cout << "ERROR: " << e.what() << std::endl;
+      return 1;
+    }
+    std::cout << command << std::endl;
   }
   else {
     std::cout << "Command not known." << std::endl;

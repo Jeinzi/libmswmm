@@ -5,4 +5,4 @@ cd build
 cmake ..
 make -j4
 cd ..
-./build/libmswmm-test
+./build/mswmm-tool
