@@ -150,20 +150,20 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
     throw std::runtime_error("Empty video timeline.");
   }
   std::stringstream command;
-  std::stringstream filter;
+  std::stringstream transitionFilter;
+  std::vector<std::string> concatElements;
   command << "ffmpeg ";
 
   size lastSizePx;
   bool hasImages = false;
   bool hasVideos = false;
   unsigned int i = 0;
-  float lastEndTime = 0;
-  for (auto const& ti: videoTimeline) {
-    if (ti->timelineStart < lastEndTime) {
-      throw std::runtime_error("Timeline items overlap, but transitions are not yet supported.");
-    }
+  unsigned int transitionCounter = 0;
+  float lastTimelineStart = 0;
+  float lastTimelineEnd = 0;
 
-    // Images should be easy to include, title sequences not at all.
+  for (auto const& ti: videoTimeline) {
+    // Title sequences will be really difficult to include.
     TimelineVideoItem* tvi = dynamic_cast<TimelineVideoItem*>(ti);
     TimelineStillItem* tsi = dynamic_cast<TimelineStillItem*>(ti);
     std::string path;
@@ -185,9 +185,8 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
     if (hasVideos && hasImages) {
       throw std::runtime_error("Timelines with both videos and images are not yet supported.");
     }
-
     if (i != 0 && currentSizePx != lastSizePx) {
-      throw std::runtime_error("Images don't have the same size.");
+      throw std::runtime_error("Timeline items have different resolutions.");
     }
 
     // Replace substrings if requested.
@@ -203,35 +202,72 @@ std::string Project::generateFfmpegCommand(std::vector<std::pair<std::string, st
       }
     }
 
+    // Assemble transition filter.
+    bool hasTransition = false;
+    if (ti->timelineStart < lastTimelineEnd) {
+      // Transitions somewhat work on images.
+      // Two transitions on one timeline item do not work properly
+      // though: the transitions are there, but the item is
+      // duplicated. So this feature will stay deactivated for now.
+      // Also, ffmpeg eats enormous amounts of memory and the process
+      // has to be terminated, at least for bigger projects.
+      // Videos do not work as the audio stream is not dealt with
+      // properly.
+      hasTransition = true;
+      if (true || hasVideos) {
+        throw std::runtime_error("Timeline items overlap, but transitions are currently not supported.");
+        //throw std::runtime_error("Videos overlap, but transitions are currently only supported for images.");
+      }
+      // Example for transition filter:
+      // [1][2]xfade=transition=fade:duration=1:offset=1[t0];
+      // Take inputs 1 and 2, fade them, save result into t0
+      float lastDuration = lastTimelineEnd - lastTimelineStart;
+      float overlap = lastTimelineEnd - ti->timelineStart;
+      std::string transitionId = "[t" + std::to_string(transitionCounter++) + "]";
+      transitionFilter << '[' << i-1 << ']'
+                       << '[' << i   << ']'
+                       << "xfade=transition=fade"
+                       << ":duration=" << overlap
+                       << ":offset=" << lastDuration - overlap
+                       << transitionId << ';';
+      if (concatElements.back()[1] != 't') {
+        concatElements.pop_back();
+      }
+      concatElements.push_back(transitionId);
+    }
+
     // Assemble command.
     if (tvi) {
       command << "-ss " << tvi->sourceStart
               << " -to " << tvi->sourceEnd
               << " -i '" << path << "' ";
-      filter << "[" << i << ":v] [" << i << ":a] ";
+      std::string concatIds = (std::stringstream() << "[" << i << ":v][" << i << ":a]").str();
+      concatElements.push_back(concatIds);
     }
     else if (tsi) {
       command << "-loop 1 -framerate 24 "
               << "-t " << ti->timelineEnd - ti->timelineStart
               << " -i '" << path << "' ";
-      filter << "[" << i << "] ";
+      if (!hasTransition) {
+        std::string concatId = (std::stringstream() << "[" << i << "]").str();
+        concatElements.push_back(concatId);
+      }
     }
 
-
-    lastEndTime = ti->timelineEnd;
+    lastTimelineEnd = ti->timelineEnd;
+    lastTimelineStart = ti->timelineStart;
     lastSizePx = currentSizePx;
     ++i;
   }
 
-  // Add concatenation filter.
-  if (hasVideos) {
-    command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=1 [v] [a]' -map '[v]' -map '[a]' ";
+  // Add filter.
+  command << "-filter_complex '" << transitionFilter.str();
+  for (auto const& e: concatElements) {
+    command << e;
   }
-  else {
-    command << "-filter_complex '" << filter.str() << "concat=n=" << i << ":v=1:a=0' ";
-  }
-
-  command << "output.mp4";
+  command << "concat=n=" << concatElements.size()
+          << ":v=1:a=" << (int)hasVideos
+          << "' output.mp4";
   return command.str();
 }
 
