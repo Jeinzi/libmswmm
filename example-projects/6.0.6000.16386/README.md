@@ -11,3 +11,4 @@ image-5s+3.12s-transition.MSWMM | The previous project, but now with a "fade" tr
 image-5s-fade-in.MSWMM | A 5s long image with fade in from black effect
 image-5s-fade-in-out.MSWMM | Fade out to black added to the previous project
 one-sound.MSWMM | Contains only one audio file on the audio timeline
+one-sound-fade-mute-half-volume.MSWMM | The same as before, but fade in and out have been activated, the volume set to 0.48 and the whole clip muted

@@ -38,14 +38,15 @@ int main(int argc, char** argv) {
     project.printXml(std::cout);
   }
   else if (strcmp(argv[1], "info") == 0) {
+    uint8_t indent = 4;
     std::cout << "Metadata:\n";
-    project.printMetadata(std::cout, 2);
+    project.printMetadata(std::cout, indent);
     std::cout << "Files used in project:\n";
-    project.printFiles(std::cout, 2);
+    project.printFiles(std::cout, indent);
     std::cout << "Video timeline:\n";
-    project.printMediaTimeline(std::cout, mswmm::TrackType::VIDEO, 2);
+    project.printMediaTimeline(std::cout, mswmm::TrackType::VIDEO, indent);
     std::cout << "Audio timeline:\n";
-    project.printMediaTimeline(std::cout, mswmm::TrackType::AUDIO, 2);
+    project.printMediaTimeline(std::cout, mswmm::TrackType::AUDIO, indent);
   }
   else if (strcmp(argv[1], "ffmpeg") == 0) {
     std::vector<std::pair<std::string, std::string>> substitutions;

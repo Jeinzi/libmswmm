@@ -398,6 +398,12 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
     float sourceStart = tmlnItem.attribute("ClpSrt").toFloat();
     float sourceEnd = tmlnItem.attribute("ClpEnd").toFloat();
 
+    // I think the following attributes are only set for audio items.
+    bool isMuted = tmlnItem.attribute("TmlnMute").toInt();
+    bool fadesIn = tmlnItem.attribute("TmlnFadeIn").toInt();
+    bool fadesOut = tmlnItem.attribute("TmlnFadeOut").toInt();
+    float volume = tmlnItem.attribute("ClipVolume").toFloat();
+
 
     auto tag = tmlnItem.tagName();
     if (tag == "TiTitleSource") {
@@ -425,26 +431,39 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
       ti->effects = std::move(effects);
       timeline->push_back(ti);
     }
-    else if (tag == "TmlnVideoItem" || tag == "TmlnAudioItem") {
-      TimelineVideoItem** ti = new TimelineVideoItem*;
-      if (tag == "TmlnVideoItem") {
-        *ti = new TimelineVideoItem;
-      }
-      else {
-        *ti = new TimelineAudioItem;
-      }
+    else if (tag == "TmlnVideoItem") {
+      auto ti = new TimelineVideoItem;
 
-      (*ti)->timelineStart = timelineStart;
-      (*ti)->timelineEnd = timelineEnd;
-      (*ti)->name = name;
-      (*ti)->srcPath = srcPath;
-      (*ti)->fileSizeKiB = fileSizeKiB;
-      (*ti)->srcSizePx = srcSizePx;
-      (*ti)->sourceStart = sourceStart;
-      (*ti)->sourceEnd = sourceEnd;
-      (*ti)->effects = std::move(effects);
-      timeline->push_back(*ti);
-      delete ti;
+      ti->timelineStart = timelineStart;
+      ti->timelineEnd = timelineEnd;
+      ti->name = name;
+      ti->srcPath = srcPath;
+      ti->fileSizeKiB = fileSizeKiB;
+      ti->srcSizePx = srcSizePx;
+      ti->sourceStart = sourceStart;
+      ti->sourceEnd = sourceEnd;
+      ti->effects = std::move(effects);
+      timeline->push_back(ti);
+    }
+    else if (tag == "TmlnAudioItem") {
+      auto ti = new TimelineAudioItem;
+      ti->timelineStart = timelineStart;
+      ti->timelineEnd = timelineEnd;
+      ti->name = name;
+      ti->srcPath = srcPath;
+      ti->fileSizeKiB = fileSizeKiB;
+      ti->srcSizePx = srcSizePx;
+      ti->sourceStart = sourceStart;
+      ti->sourceEnd = sourceEnd;
+      ti->fadesIn = fadesIn;
+      ti->fadesOut = fadesOut;
+      ti->isMuted = isMuted;
+      ti->volume = volume;
+      ti->effects = std::move(effects);
+      timeline->push_back(ti);
+    }
+    else {
+      throw CorruptFileError("Unknown timeline item '" + tag.toStdString() + "'.");
     }
   }
 }

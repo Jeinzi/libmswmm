@@ -79,11 +79,12 @@ struct TimelineStillItem : public TimelineItem {
   size srcSizePx;
 
   void printItem(std::ostream& target, uint8_t indent = 0) const override {
-    std::string indentStr = std::string(indent, ' ');
-    target << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
-           << indentStr << "  - Path: " << srcPath << "\n"
-           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
-           << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
+    std::string i1 = std::string(indent,   ' ');
+    std::string i2 = std::string(indent*2, ' ');
+    target << i1 << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
+           << i2 << "- Path: " << srcPath << "\n"
+           << i2 << "- File size: ca. " << fileSizeKiB << "KiB\n"
+           << i2 << "- Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
     printEffects(target, indent);
   }
 };
@@ -95,12 +96,13 @@ struct TimelineVideoItem : public TimelineStillItem {
   float sourceEnd;
 
   void printItem(std::ostream& target, uint8_t indent = 0) const override {
-    std::string indentStr = std::string(indent, ' ');
-    target << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
-           << indentStr << "  - Path: " << srcPath << "\n"
-           << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
-           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
-           << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
+    std::string i1 = std::string(indent,   ' ');
+    std::string i2 = std::string(indent*2, ' ');
+    target << i1 << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
+           << i2 << "- Path: " << srcPath << "\n"
+           << i2 << "- Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
+           << i2 << "- File size: ca. " << fileSizeKiB << "KiB\n"
+           << i2 << "- Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
     printEffects(target, indent);
   }
 };
@@ -108,13 +110,39 @@ struct TimelineVideoItem : public TimelineStillItem {
 
 
 struct TimelineAudioItem : TimelineVideoItem {
+  bool isMuted;
+  bool fadesIn;
+  bool fadesOut;
+  float volume;
+
   void printItem(std::ostream& target, uint8_t indent = 0) const override {
-    std::string indentStr = std::string(indent, ' ');
-    target << indentStr << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
-           << indentStr << "  - Path: " << srcPath << "\n"
-           << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
-           << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n";
-    printEffects(target, indent); // This should never do anything.
+    std::string i1 = std::string(indent,   ' ');
+    std::string i2 = std::string(indent*2, ' ');
+    target << i1 << "'" << name << "' from " << timelineStart << "s to " << timelineEnd << "s\n"
+           << i2 << "- Path: " << srcPath << "\n"
+           << i2 << "- Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
+           << i2 << "- File size: ca. " << fileSizeKiB << "KiB\n";
+
+    if (volume != 1) {
+      target << i2 << "- Volume: " << volume << '\n';
+    }
+    if (isMuted) {
+      target << i2 << "- Is muted\n";
+    }
+
+    std::string fade;
+    if (fadesIn) {
+      fade = "in";
+    }
+    if (fadesOut) {
+      if (!fade.empty()) {
+        fade += " &";
+      }
+      fade += " out";
+    }
+    if (!fade.empty()) {
+      target << i2 << "- Fades " << fade << '\n';
+    }
   }
 };
 

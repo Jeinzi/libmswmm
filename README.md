@@ -12,7 +12,7 @@ While it is my goal to extract all relevant information from the Movie Maker fil
 - Print video timeline
   - With applied effects
   - Without detailed information on transitions, titles and credits
-- Print audio timeline, but without information on fade-in and -out effects
+- Print audio timeline
 - Generate an ffmpeg command to render the project
   - This currently works only in simple cases:
     - When the video timeline consists solely out of non overlapping video files.
