@@ -379,6 +379,9 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
     float timelineStart = tmlnItem.attribute("TmlnSrt").toFloat();
     float timelineEnd = tmlnItem.attribute("TmlnEnd").toFloat();
 
+    // Everything on the video timeline can have effects.
+    std::vector<std::string> effects = getEffects(dataStr, tmlnItem);
+
     // Only images, videos and audio files have the following attributes.
     std::string name = clipItem.attribute("ClpNam").toStdString();
     std::string srcPath = fileInfo.attribute("SrceFn").toStdString();
@@ -405,6 +408,7 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
       auto ti = new TimelineTitleItem;
       ti->timelineStart = timelineStart;
       ti->timelineEnd = timelineEnd;
+      ti->effects = std::move(effects);
       timeline->push_back(ti);
     }
     else if (tag == "TmlnStillItem") {
@@ -418,6 +422,7 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
       ti->srcPath = srcPath;
       ti->fileSizeKiB = fileSizeKiB;
       ti->srcSizePx = srcSizePx;
+      ti->effects = std::move(effects);
       timeline->push_back(ti);
     }
     else if (tag == "TmlnVideoItem" || tag == "TmlnAudioItem") {
@@ -437,10 +442,33 @@ void Project::getMediaTimeline(QDomElement const& dataStr, TrackType trackId) {
       (*ti)->srcSizePx = srcSizePx;
       (*ti)->sourceStart = sourceStart;
       (*ti)->sourceEnd = sourceEnd;
+      (*ti)->effects = std::move(effects);
       timeline->push_back(*ti);
       delete ti;
     }
   }
+}
+
+
+
+std::vector<std::string> Project::getEffects(QDomElement const& dataStr, QDomElement const& tmlnItem) {
+  std::vector<std::string> effects;
+
+  // Get effect array for this timeline item.
+  QString effectArrUid = tmlnItem.firstChildElement("TiEffectArr").attribute("UID");
+  QDomElement effectArr = getTagWithAttr(dataStr, "", "UID", effectArrUid);
+
+  // Iterate through effects and extract parameters.
+  QDomElement n = effectArr.firstChildElement("UID");
+  while (!n.isNull()) {
+    QString effectUid = n.attribute("UID");
+    QDomElement effect = getTagWithAttr(dataStr, "TiEffect", "UID", effectUid);
+    QString name = effect.firstChildElement("TiEffectPtr").attribute("TFXGuid");
+    effects.push_back(name.toStdString());
+
+    n = n.nextSiblingElement("UID");
+  }
+  return effects;
 }
 
 

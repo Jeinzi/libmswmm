@@ -71,6 +71,7 @@ class Project {
     void getMetadata(QDomElement const& dataStr);
     void getFileList(QDomElement const& dataStr);
     void getMediaTimeline(QDomElement const& dataStr, TrackType trackId);
+    std::vector<std::string> getEffects(QDomElement const& dataStr, QDomElement const& tmlnItem);
     QDomElement getTagWithAttr(QDomNode const& parent, QString tag, QString attr, QString attrVal) const;
     CFB::COMPOUND_FILE_ENTRY const* findStream(CFB::CompoundFileReader const& reader, char const* targetName) const;
 

@@ -9,8 +9,10 @@ While it is my goal to extract all relevant information from the Movie Maker fil
 - Print project metadata
 - Print paths to media files used in project
 - Print project XML
-- Print video timeline, but without detailed information on title sequences
-- Print audio timeline
+- Print video timeline
+  - With applied effects
+  - Without detailed information on transitions, titles and credits
+- Print audio timeline, but without information on fade-in and -out effects
 - Generate an ffmpeg command to render the project
   - This currently works only in simple cases:
     - When the video timeline consists solely out of non overlapping video files.

@@ -18,6 +18,7 @@ See LICENSE file for the full license text.
 #define _TIMELINEITEM_HPP
 
 #include <string>
+#include <vector>
 #include <ostream>
 
 
@@ -44,9 +45,18 @@ struct size {
 struct TimelineItem {
   float timelineStart;
   float timelineEnd;
+  std::vector<std::string> effects;
 
   virtual ~TimelineItem() = default;
   virtual void printItem(std::ostream& target, uint8_t indent = 0) const = 0;
+  virtual void printEffects(std::ostream& target, uint8_t indent = 0) const {
+    if (!effects.empty()) {
+      target << std::string(indent*2, ' ') << "- Effects:\n";
+      for (auto const& e: effects) {
+        target << std::string(indent*3, ' ') << "- " << e << '\n';
+      }
+    }
+  }
 };
 
 
@@ -54,7 +64,9 @@ struct TimelineItem {
 struct TimelineTitleItem : public TimelineItem {
   //std::string type;
   void printItem(std::ostream& target, uint8_t indent = 0) const override {
-    target << std::string(indent, ' ') << "Title from " << timelineStart << "s to " << timelineEnd << "s\n";
+    std::string indentStr = std::string(indent, ' ');
+    target << indentStr << "Title from " << timelineStart << "s to " << timelineEnd << "s\n";
+    printEffects(target, indent);
   }
 };
 
@@ -72,6 +84,7 @@ struct TimelineStillItem : public TimelineItem {
            << indentStr << "  - Path: " << srcPath << "\n"
            << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
            << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
+    printEffects(target, indent);
   }
 };
 
@@ -88,6 +101,7 @@ struct TimelineVideoItem : public TimelineStillItem {
            << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
            << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n"
            << indentStr << "  - Width x Height: " << srcSizePx.x << "px x " << srcSizePx.y << "px\n";
+    printEffects(target, indent);
   }
 };
 
@@ -100,6 +114,7 @@ struct TimelineAudioItem : TimelineVideoItem {
            << indentStr << "  - Path: " << srcPath << "\n"
            << indentStr << "  - Part taken from file: " << sourceStart << "s to " << sourceEnd << "s\n"
            << indentStr << "  - File size: ca. " << fileSizeKiB << "KiB\n";
+    printEffects(target, indent); // This should never do anything.
   }
 };
 
