@@ -3,3 +3,4 @@ assets/*
 build/*
 example-projects/random
 example-projects/*/*.xml
+.cache
